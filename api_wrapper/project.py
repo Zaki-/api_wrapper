@@ -18,6 +18,7 @@ from common import clock, draw_str
 help_message = '''
 USAGE: facedetect_edit.py [--cascade <cascade_fn>] [--nested-cascade <cascade_fn>] [<video_source>]
 ''' 
+global Walk, sit, HeadMoved
 def detect(img, cascade):
     rects = cascade.detectMultiScale(img, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags = cv2.CASCADE_SCALE_IMAGE)
     if len(rects) == 0:
@@ -28,17 +29,13 @@ def detect(img, cascade):
 def draw_rects(img, rects, color):
     for x1, y1, x2, y2 in rects:
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
-def Run(X,Y):
-        global Socket
+def Run(X,Y,Distance):
+        global Walk, sit, HeadMoved
         #api.Walk(True)
         print("Running...")
-        #packet = Socket.recv(8)
-        print("Packet recieved")
-        #command = struct.unpack('B', packet[1])[0]
         command = 0
-	z=20
-
-	# declerating servos limmits
+	z=5
+	# declaring servos limmits
 	#headRightLim=667
 	#headLeftLim=364
 	#headUpLim=612
@@ -52,7 +49,7 @@ def Run(X,Y):
         
 	pan = api.GetMotorValue(19)
 	tilt= api.GetMotorValue(20)
-
+	
 	# check when to call the walk functions
         if ((pan<headRightLim) and (pan>headLeftLim)):
 		print "head move"
@@ -64,30 +61,57 @@ def Run(X,Y):
 		# call walk to the right till you reach pan = 512 (need while loop)
 #		while (pan != 512):
                         print "walk to the left"
-
-	if (X>50) and (667 > pan):
+	if HeadMoved == 0:
+	   if (X>50) and (667 > pan):
 		for i in range(1,z):
-			api.SetMotorValue(19,pan+5)
-	elif (X<-50) and (364 < pan):
+			api.SetMotorValue(19,pan+7)
+	   elif (X<-50) and (364 < pan):
 		for i in range(1,abs(z)):
-			api.SetMotorValue(19,pan-5)
-	if (Y>50) and ( 612 > tilt):
+			api.SetMotorValue(19,pan-7)
+	   if (Y>50) and ( 612 > tilt):
                 for i in range(1,z):
-                        api.SetMotorValue(10,tilt+5)
-        elif (Y<-50) and (433 < tilt):
+                        api.SetMotorValue(20,tilt+7)
+           elif (Y<-50) and (433 < tilt):
                 for i in range(1,abs(z)):
-                        api.SetMotorValue(20,tilt-5)
-		
-	
+                        api.SetMotorValue(20,tilt-7)
+	print Distance
+	if (Distance < 150) and (Walk == False):
+		api.Walk(True)
+		Walk = True
+		sit = 0
+		HeadMoved = 1
+		print('Walk=======>')
+	elif(Distance > 150) and (Walk == True)  :
+		#api.Walk(False)
+		Walk=False	
+		if (sit == 0):
+			api.Walk(False)
+			api.PlayAction(15)
+			sit = 1
+			print ( 'Sitting+++++++++')
+	if (Walk == True):
+		if (X>50):
+                         api.WalkTurn(5)
+                         print('Trun Right')
+                elif (X<-50):
+                         api.WalkTurn(-5)
+                         print('Trun Left')
+                else :
+                        api.WalkTurn(0)
+                        print ('No Trun')
+
         print("pan",pan)
 
         print("tilt",tilt)
-       # api.ServoShutdown()
+        #api.ServoShutdown()
 
-
+	
 	#Run()
 if __name__ == '__main__':
     import sys, getopt
+    Walk = False
+    sit = 0
+    HeadMoved = 0
     print help_message
     try:
                 if api.Initialize():
@@ -134,13 +158,13 @@ if __name__ == '__main__':
                     vis_roi = vis[y1:y2, x1:x2]
                     subrects = detect(roi.copy(), nested)
                     #draw_rects(vis_roi, subrects, (255, 0, 0))
-                    print ('time: %.1f ms' % (dt*1000))
-                    print ('Length: %.1f cm' % (y2-y1))
+                    # print ('time: %.1f ms' % (dt*1000))
+                    # print ('Length: %.1f cm' % (y2-y1))
                 
 		    x_center=(320-(x2+x1)/2)
 		    y_center=(240-(y2+y1)/2)
-		    Run(x_center,y_center)
-		    print (x_center,y_center)
+		    Run(x_center,y_center,y2-y1)
+		    #print (x_center,y_center)
             if 0xFF & cv2.waitKey(5) == 27:
                 break
         cv2.destroyAllWindows()
