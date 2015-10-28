@@ -18,7 +18,7 @@ from common import clock, draw_str
 help_message = '''
 USAGE: facedetect_edit.py [--cascade <cascade_fn>] [--nested-cascade <cascade_fn>] [<video_source>]
 ''' 
-global Walk, sit, HeadMoved,p,j
+global Walk, sit, HeadMoved
 def detect(img, cascade):
     rects = cascade.detectMultiScale(img, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags = cv2.CASCADE_SCALE_IMAGE)
     if len(rects) == 0:
@@ -30,7 +30,7 @@ def draw_rects(img, rects, color):
     for x1, y1, x2, y2 in rects:
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 def Run(X,Y,Distance):
-        global Walk, sit, HeadMoved,i,j
+        global Walk, sit, HeadMoved
         #api.Walk(True)
         print("Running...")
         command = 0
@@ -40,7 +40,7 @@ def Run(X,Y,Distance):
 	#headLeftLim=364
 	#headUpLim=612
 	#headDownLim=433
-	
+
 	headRightLim=600
         headLeftLim=420
         headUpLim=612
@@ -60,61 +60,45 @@ def Run(X,Y,Distance):
 	elif (pan<headLeftLim):
 		# call walk to the right till you reach pan = 512 (need while loop)
 #		while (pan != 512):
-                        print "walk to the left"
-	if (abs(X)>=100): p=9
-	elif (abs(X)<100 and abs(X) >70): p = 7
-	elif (abs(X)<= 70 and abs(X)> 50): p= 5
-	else: p=2
-	if (abs(Y)>=100): j=5
-        elif (abs(Y)<100 and abs(Y) >70): j = 4
-        elif (abs(Y)<= 70 and abs(Y)> 50): j= 3
-        else: j=2
-	print ('p = ',p, 'j= ',j)
+                        print "walk to the right"
 	if HeadMoved == 0:
-	   i= int(round(X/10))
 	   if (X>50) and (667 > pan):
-		for I in range(1,z):
-			api.SetMotorValue(19,pan+p)
+		for i in range(1,z):
+			api.SetMotorValue(19,pan+7)
 	   elif (X<-50) and (364 < pan):
-		for I in range(1,abs(z)):
-			api.SetMotorValue(19,pan-p)
+		for i in range(1,abs(z)):
+			api.SetMotorValue(19,pan-7)
 	   if (Y>50) and ( 612 > tilt):
-                for I in range(1,z):
-                        api.SetMotorValue(20,tilt+j)
+                for i in range(1,z):
+                        api.SetMotorValue(20,tilt+7)
            elif (Y<-50) and (433 < tilt):
-                for I in range(1,abs(z)):
-                        api.SetMotorValue(20,tilt-j)
-	print Distance
-	if (Distance < 150) and (Walk == False):
-		api.Walk(True)
-		speed = int((150-Distance)/2)
-		if speed > 10: speed = 10
-		print ('Speed = ',speed)
-		api.WalkMove(speed)
-		Walk = True
-		sit = 0
-		HeadMoved = 1
-		print('Walk=======>')
-	elif(Distance > 150) and (Walk == True)  :
-		#api.WalkMove(2)
+                for i in range(1,abs(z)):
+                        api.SetMotorValue(20,tilt-7)
+	print "distance", Distance
+#	if (Distance < 150) and (Walk == False):
+#		api.Walk(True)
+#		Walk = True
+#		sit = 0
+#		HeadMoved = 1
+#		print('Walk=======>')
+#	elif(Distance > 150) and (Walk == True)  :
 		#api.Walk(False)
-		Walk=False	
-		if (sit == 0):
-			api.Walk(False)
-			api.PlayAction(15)
-			sit = 1
-			print ( 'Sitting+++++++++')
-	if (Walk == True):
-		if (X>50):
-                         api.WalkTurn(p)
-                         #api.WalkMove(Distance)
-			 print('Trun Right')
-                elif (X<-50):
-                         api.WalkTurn(-p)
-                         print('Trun Left')
-                else :
-                        api.WalkTurn(0)
-                        print ('No Trun')
+#		Walk=False	
+#		if (sit == 0):
+#			api.Walk(False)
+#			api.PlayAction(15)
+#			sit = 1
+#			print ( 'Sitting+++++++++')
+#	if (Walk == True):
+#		if (X>50):
+ #                        api.WalkTurn(5)
+  #                       print('Trun Right')
+#                elif (X<-50):
+#                         api.WalkTurn(-5)
+#                         print('Trun Left')
+#                else :
+#                        api.WalkTurn(0)
+#                        print ('No Trun')
 
         print("pan",pan)
 
@@ -128,8 +112,6 @@ if __name__ == '__main__':
     Walk = False
     sit = 0
     HeadMoved = 0
-    i=1
-    j=1
     print help_message
     try:
                 if api.Initialize():
@@ -181,6 +163,7 @@ if __name__ == '__main__':
                 
 		    x_center=(320-(x2+x1)/2)
 		    y_center=(240-(y2+y1)/2)
+		    #Run(x_center,y_center)
 		    Run(x_center,y_center,y2-y1)
 		    #print (x_center,y_center)
             if 0xFF & cv2.waitKey(5) == 27:
